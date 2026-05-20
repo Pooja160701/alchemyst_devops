@@ -122,10 +122,10 @@ resource "aws_security_group" "worker_sg" {
   vpc_id      = aws_vpc.main.id
 
   ingress {
-    description = "Internal subnet traffic"
-    from_port   = 0
-    to_port     = 65535
-    protocol    = "tcp"
+    description = "Allow ICMP ping"
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
     cidr_blocks = ["10.0.0.0/16"]
   }
 
@@ -137,6 +137,22 @@ resource "aws_security_group" "worker_sg" {
     cidr_blocks = ["10.0.0.0/16"]
   }
 
+  ingress {
+    description = "Internal TCP traffic"
+    from_port   = 0
+    to_port     = 65535
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]
+  }
+
+    ingress {
+    description = "Temporary public SSH"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -146,5 +162,70 @@ resource "aws_security_group" "worker_sg" {
 
   tags = {
     Name = "worker-sg"
+  }
+}
+
+data "aws_ami" "ubuntu" {
+  most_recent = true
+
+  owners = ["099720109477"]
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+  }
+}
+
+resource "aws_instance" "api_vm" {
+  ami                         = data.aws_ami.ubuntu.id
+  instance_type               = "t2.micro"
+  subnet_id                   = aws_subnet.public_subnet.id
+  vpc_security_group_ids      = [aws_security_group.api_sg.id]
+  associate_public_ip_address = true
+  key_name                    = "alchemyst-key"
+
+  tags = {
+    Name = "api-vm"
+  }
+}
+
+resource "aws_instance" "python_worker" {
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = "t2.micro"
+  subnet_id              = aws_subnet.private_subnet.id
+  vpc_security_group_ids = [aws_security_group.worker_sg.id]
+  key_name               = "alchemyst-key"
+
+  tags = {
+    Name = "python-worker"
+  }
+}
+
+resource "aws_instance" "ts_worker" {
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = "t2.micro"
+  subnet_id              = aws_subnet.private_subnet.id
+  vpc_security_group_ids = [aws_security_group.worker_sg.id]
+  key_name               = "alchemyst-key"
+
+  tags = {
+    Name = "ts-worker"
+  }
+}
+
+resource "aws_instance" "model_worker" {
+  ami                         = data.aws_ami.ubuntu.id
+  instance_type               = "t3.small"
+  subnet_id                   = aws_subnet.public_subnet.id
+  vpc_security_group_ids      = [aws_security_group.worker_sg.id]
+  key_name                    = "alchemyst-key"
+  associate_public_ip_address = true
+
+  root_block_device {
+    volume_size = 20
+  }
+
+  tags = {
+    Name = "model-worker"
   }
 }
