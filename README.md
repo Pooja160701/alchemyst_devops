@@ -1,6 +1,4 @@
-# alchemyst_devops
-
-# Alchemyst AI — DevOps Internship Assignment
+# Alchemyst AI
 
 ## Overview
 
@@ -11,6 +9,36 @@ The system was provisioned on AWS using Infrastructure as Code principles and de
 ---
 
 # Architecture
+
+# Architecture Diagram
+
+                              Internet
+                                  |
+                                  |
+                           SSH (Port 22)
+                                  |
+                    +-------------------------+
+                    |     Public EC2 VM       |
+                    |  API / Caller Worker    |
+                    |-------------------------|
+                    | Public IP: 13.x.x.x     |
+                    | Private IP: 10.0.1.---  |
+                    | Subnet: 10.0.1.0/24     |
+                    | Node.js + TypeScript    |
+                    +-------------------------+
+                                  |
+                     Internal VPC Communication
+                              (10.0.0.0/16)
+                                  |
+                    +-------------------------+
+                    |    Model Worker VM      |
+                    |  Python Inference Node  |
+                    |-------------------------|
+                    | Private IP: 10.0.2.---  |
+                    | Subnet: 10.0.2.0/24     |
+                    | Python + Transformers   |
+                    | distilgpt2 Model        |
+                    +-------------------------+
 
 ## Components
 
@@ -239,6 +267,20 @@ The following evidence/screenshots were collected:
 * TypeScript worker startup
 * Worker connectivity attempts
 
+![alt text](screenshots/image.png)
+
+![alt text](screenshots/image-1.png)
+
+![alt text](screenshots/image-2.png)
+
+![alt text](screenshots/image-3.png)
+
+![alt text](screenshots/image-4.png)
+
+![alt text](screenshots/image-5.png)
+
+![alt text](screenshots/image-6.png)
+
 ---
 
 # Conclusion
@@ -253,19 +295,3 @@ The assignment successfully demonstrates:
 * Runtime debugging and troubleshooting
 
 Although the proprietary III runtime engine was unavailable, the infrastructure and distributed worker deployment were implemented and validated successfully.
-
-
-
-![alt text](image.png)
-
-![alt text](image-1.png)
-
-![alt text](image-2.png)
-
-![alt text](image-3.png)
-
-![alt text](image-4.png)
-
-![alt text](image-5.png)
-
-![alt text](image-6.png)
